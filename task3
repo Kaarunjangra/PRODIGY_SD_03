@@ -1,0 +1,113 @@
+const fs = require('fs');
+const readline = require('readline');
+
+const contactsFilePath = './contacts.json';
+
+let contacts = [];
+
+if (fs.existsSync(contactsFilePath)) {
+    const data = fs.readFileSync(contactsFilePath);
+    contacts = JSON.parse(data);
+}
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+function saveContacts() {
+    fs.writeFileSync(contactsFilePath, JSON.stringify(contacts, null, 2));
+}
+
+function displayContacts() {
+    console.log('\nContact List:');
+    contacts.forEach((contact, index) => {
+        console.log(`${index + 1}. ${contact.name} - ${contact.phone} - ${contact.email}`);
+    });
+}
+
+function addContact() {
+    rl.question('Enter name: ', (name) => {
+        rl.question('Enter phone: ', (phone) => {
+            rl.question('Enter email: ', (email) => {
+                contacts.push({ name, phone, email });
+                saveContacts();
+                console.log('Contact added successfully.');
+                mainMenu();
+            });
+        });
+    });
+}
+
+function editContact() {
+    displayContacts();
+    rl.question('Enter the number of the contact you want to edit: ', (index) => {
+        index = parseInt(index) - 1;
+        if (index >= 0 && index < contacts.length) {
+            rl.question('Enter new name: ', (name) => {
+                rl.question('Enter new phone: ', (phone) => {
+                    rl.question('Enter new email: ', (email) => {
+                        contacts[index] = { name, phone, email };
+                        saveContacts();
+                        console.log('Contact edited successfully.');
+                        mainMenu();
+                    });
+                });
+            });
+        } else {
+            console.log('Invalid contact number.');
+            mainMenu();
+        }
+    });
+}
+
+function deleteContact() {
+    displayContacts();
+    rl.question('Enter the number of the contact you want to delete: ', (index) => {
+        index = parseInt(index) - 1;
+        if (index >= 0 && index < contacts.length) {
+            contacts.splice(index, 1);
+            saveContacts();
+            console.log('Contact deleted successfully.');
+            mainMenu();
+        } else {
+            console.log('Invalid contact number.');
+            mainMenu();
+        }
+    });
+}
+
+function mainMenu() {
+    console.log('\nContact Manager');
+    console.log('1. View Contacts');
+    console.log('2. Add Contact');
+    console.log('3. Edit Contact');
+    console.log('4. Delete Contact');
+    console.log('5. Exit');
+    
+    rl.question('Choose an option: ', (option) => {
+        switch (option) {
+            case '1':
+                displayContacts();
+                mainMenu();
+                break;
+            case '2':
+                addContact();
+                break;
+            case '3':
+                editContact();
+                break;
+            case '4':
+                deleteContact();
+                break;
+            case '5':
+                rl.close();
+                break;
+            default:
+                console.log('Invalid option. Please choose again.');
+                mainMenu();
+        }
+    });
+}
+
+mainMenu();
